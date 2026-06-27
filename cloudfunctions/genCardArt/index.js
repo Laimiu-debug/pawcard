@@ -31,6 +31,7 @@ exports.main = async (event) => {
       originFileID: card.originPhoto,
       rarity: card.rarity,
       recognize: recognizeStub,
+      cloud,   // 注入云能力
     });
     // 事务：更新卡面 + 扣道具
     await db.runTransaction(async tx => {

@@ -43,16 +43,21 @@
 3. 微信开发者工具打开 `build/wechatgame/`，配置云环境 cloudbase-d0gm6j7hqbc346db6
 4. 真机扫码预览，验证：
    - **完整闭环**：拍照 → 翻卡(原图) → 卡面升级(AI重绘) → 图鉴可见
-   - **AI 重绘一致性**：生成卡仍能辨认出原猫（ControlNet 生效；mock 下暂=原图，接真实 API 后验证）
+   - **AI 重绘一致性**：生成卡仍能辨认出原猫（见 `04-art-api-setup.md` 接万相后验证）
    - **动画炫酷**：翻卡 3D 翻转 + SSR/UR 粒子光效显著
 
-## 🔌 接真实 AI（后续）
+## 🔌 接真实图生图（万相）
 
-MVP 默认 mock（art-provider 无环境变量时直接返回原图）。接真实图生图时：
-1. 在云函数环境变量配置 `ART_API_URL` 和 `ART_API_KEY`
-2. 真实 API 需支持 img2img + controlnet(canny)，返回 `image_file_id` 和 `quality_score`
-3. 重新上传 `genCardArtTask` 和 `genCardArt` 云函数
-4. 按云函数运行时 Node 版本，确认 `fetch` 可用（Node 18+ 内置；旧版需加 axios 依赖）
+已接好（`shared/art-provider.ts` 调阿里万相 wan2.7-imageedit）。启用步骤见 `04-art-api-setup.md`：
+1. 阿里云百炼拿 `DASHSCOPE_API_KEY`
+2. 云函数 `genCardArtTask` / `genCardArt` 配环境变量 `DASHSCOPE_API_KEY`
+3. 重新上传这两个云函数
+4. 验证：捕捉后卡片 artPhoto 从原图变成卡牌风格重绘图，且能认出原猫
+5. ⚠️ 计费：万相约 ¥0.16-0.2/张，建议百炼设消费告警
+
+## Node 版本确认
+
+云函数运行时 Node 18+ 才有内置 `fetch`。若图生图报 `fetch is not defined`，在 genCardArtTask/package.json 加 `"axios" "^1.6.0"` 依赖并改 art-provider 用 axios（或云函数运行时升级到 Node 18）。
 
 ## 版本标记
 

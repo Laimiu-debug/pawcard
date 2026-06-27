@@ -33,6 +33,7 @@ exports.main = async (event) => {
       originFileID: card.originPhoto,
       rarity: card.rarity,
       recognize: recognizeStub,
+      cloud,   // 注入云能力（getTempFileURL / uploadFile）
     });
 
     // 质量兜底：分数过低重试一次，取较高者

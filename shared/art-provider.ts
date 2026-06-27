@@ -1,13 +1,15 @@
 // shared/art-provider.ts
-// 「照片→炫酷卡牌」的技术核心：图生图 + ControlNet。
-// 封装为可替换接口：配了 ART_API_URL/ART_API_KEY 走真实云端图生图 API，
-// 否则 mock 兜底（直接用原图返回），保证 MVP 链路可跑通。
+// 「照片→炫酷卡牌」技术核心：阿里通义万相 图生图 API。
+// 流程：fileID → getTempFileURL 换临时URL → 万相图生图(prompt+原图) → 下载结果 → 上传云存储 → 新 fileID。
+// 无 DASHSCOPE_API_KEY 时 mock 兜底（直接返回原图），保证 MVP 链路可跑通。
 import type { Rarity, RecognizeResult } from './types';
 
 export interface ArtGenInput {
   originFileID: string;        // 原始照片云存储 fileID
   rarity: Rarity;
-  recognize: RecognizeResult;  // 毛色/姿态等，用于构建提示词
+  recognize: RecognizeResult;  // 毛色/姿态，用于构建提示词
+  /** 注入云能力：由云函数传入 cloud 实例，避免 shared 直接依赖 wx-server-sdk 类型 */
+  cloud?: any;
 }
 
 export interface ArtGenOutput {
@@ -17,43 +19,79 @@ export interface ArtGenOutput {
 }
 
 /**
- * 生成卡牌插画：ControlNet 锁猫的轮廓/姿态（保证"还是那只猫"），画风换卡牌风格。
- * 提示词按稀有度分级，UR 最华丽。
+ * 生成卡牌插画：拿用户的猫照片重绘成卡牌风格，保留原猫的辨识度。
+ * 用万相图生图（image + prompt），提示词按稀有度分级，UR 最华丽。
  */
 export async function generateCardArt(input: ArtGenInput): Promise<ArtGenOutput> {
-  const apiUrl = process.env.ART_API_URL;
-  const apiKey = process.env.ART_API_KEY;
+  const apiKey = process.env.DASHSCOPE_API_KEY;
 
-  // ---- mock 兜底（无 API 配置时）：直接返回原图，中等质量分不触发重试 ----
-  if (!apiUrl || !apiKey) {
+  // ---- mock 兜底（无 API Key 时）：直接返回原图，中等质量分不触发重试 ----
+  if (!apiKey) {
     return { artFileID: input.originFileID, qualityScore: 0.7, costEstimate: 0 };
   }
 
-  // ---- 真实接入：云端图生图 + ControlNet ----
+  // ---- 真实接入：阿里万相图生图 ----
+  const cloud = input.cloud;
+  if (!cloud) throw new Error('art-provider 需要 cloud 实例');
+
+  // 1. fileID → 临时下载 URL（万相需要公网可访问的图片 URL）
+  const tempUrlRes = await cloud.getTempFileURL({ fileList: [input.originFileID] });
+  const originUrl = tempUrlRes.fileList?.[0]?.tempFileURL;
+  if (!originUrl) throw new Error('getTempFileURL failed');
+
+  // 2. 调万相图生图：messages 格式，content 含 image（原图）+ text（卡牌风格提示词）
   const prompt = buildPrompt(input.rarity, input.recognize);
-  const resp = await fetch(apiUrl, {
+  const resp = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
+      // X-DashScope-DataInspection: 启用内容安全（万相默认有，可不显式传）
     },
     body: JSON.stringify({
-      mode: 'img2img',
-      controlnet: 'canny',          // 锁轮廓，保留猫的辨识度
-      init_image: input.originFileID,
-      prompt,
-      strength: 0.6,                // 0.5-0.7：保留原图结构同时换画风
-      num_images: 1,
+      model: 'wan2.7-imageedit',   // 图像编辑/图生图模型；纯文生图用 wan2.7-image-pro
+      input: {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { image: originUrl },         // 原图：保住"还是那只猫"
+              { text: prompt },             // 卡牌风格重绘指令
+            ],
+          },
+        ],
+      },
+      parameters: {
+        size: '1280*1280',                  // 卡牌近似方形
+      },
     }),
   });
 
   if (!resp.ok) {
-    throw new Error(`art api error ${resp.status}`);
+    const errText = await resp.text().catch(() => '');
+    throw new Error(`wanx api ${resp.status}: ${errText}`);
   }
+
   const data: any = await resp.json();
+  // 3. 万相返回结果图的临时 URL（约 24h 有效）
+  const contentArr = data?.output?.choices?.[0]?.message?.content;
+  const resultImageUrl = Array.isArray(contentArr)
+    ? contentArr.find((c: any) => c.image)?.image
+    : undefined;
+  if (!resultImageUrl) throw new Error('wanx no image in response');
+
+  // 4. 下载结果图 → 上传回云存储，得到永久 fileID
+  const imgResp = await fetch(resultImageUrl);
+  if (!imgResp.ok) throw new Error('download result image failed');
+  const buffer = Buffer.from(await imgResp.arrayBuffer());
+  const uploadRes = await cloud.uploadFile({
+    cloudPath: `cardart/${Date.now()}-${Math.floor(Math.random() * 1e6)}.png`,
+    fileContent: buffer,
+  });
+
   return {
-    artFileID: data.image_file_id,   // API 返回的图（已上传或需再上传云存储）
-    qualityScore: data.quality_score ?? 0.7,
+    artFileID: uploadRes.fileID,
+    qualityScore: 0.8,   // 万相不返回质量分，给固定中等偏高分；过低才触发 genCardArtTask 重试
     costEstimate: 0.2,
   };
 }
@@ -67,5 +105,5 @@ function buildPrompt(rarity: Rarity, rec: RecognizeResult): string {
     SSR: '史诗传说级卡牌，金光粒子，神圣光晕，极高细节',
     UR: '幻兽级史诗卡牌，全屏彩虹光爆裂，传说气场，极致华丽',
   };
-  return `${rec.furColor} 猫，${flair[rarity]}，居中构图，TCG 集换式卡牌风格，大师级`;
+  return `把这只${rec.furColor}猫重绘成集换式卡牌插画风格，保留这只猫的外观、毛色和姿态特征，${flair[rarity]}，居中构图，大师级，高细节，卡牌边框留白`;
 }

@@ -1,0 +1,23 @@
+# 微信小程序开发者工具
+.DS_Store
+node_modules/
+miniprogram_npm/
+.cache/
+.idea/
+.vscode/
+*.log
+
+# 云开发本地缓存
+.cloudbase/
+
+# 构建产物
+dist/
+build/
+
+# 环境变量与密钥（云函数本地配置，绝不提交）
+.env
+.env.local
+cloudfunctions/*/config.json
+
+# 微信开发者工具项目私有配置
+project.private.config.json

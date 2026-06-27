@@ -19,6 +19,7 @@ exports.main = async (event) => {
   const c = await db.collection('cards').doc(cardId).get().catch(() => ({ data: null }));
   const card = c.data;
   if (!card) return { ok: false, error: 'not-found' };
+  // 已完成则跳过；允许 pending/processing 进入处理
   if (card.artStatus === 'done') return { ok: true, skipped: 'already-done' };
 
   const retryThreshold = await getConfig('artgen_retry_threshold', 0.5);

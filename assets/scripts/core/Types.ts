@@ -4,7 +4,7 @@
 
 export type Rarity = 'N' | 'R' | 'SR' | 'SSR' | 'UR';
 export type PetType = 'cat' | 'dog' | 'other';
-export type ArtStatus = 'pending' | 'done' | 'failed';
+export type ArtStatus = 'pending' | 'processing' | 'done' | 'failed';
 
 export interface CatchLocation {
   lat: number;

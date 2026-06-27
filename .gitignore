@@ -1,23 +1,33 @@
-# 微信小程序开发者工具
-.DS_Store
+# ===== Node / 单测 =====
 node_modules/
-miniprogram_npm/
 .cache/
-.idea/
-.vscode/
 *.log
-
-# 云开发本地缓存
-.cloudbase/
-
-# 构建产物
-dist/
-build/
-
-# 环境变量与密钥（云函数本地配置，绝不提交）
 .env
 .env.local
+
+# ===== 微信云开发本地缓存 =====
+.cloudbase/
 cloudfunctions/*/config.json
 
-# 微信开发者工具项目私有配置
+# ===== Cocos Creator =====
+# 构建产物（build/wechatgame 等）不入库
+build/
+# Cocos 本地临时与缓存
+temp/
+local/
+# 各平台构建输出
+build-templates/
+# TypeScript 编译缓存
+library/
+# 项目内生成的导出
+native/
+
+# ===== 编辑器 / 系统 =====
+.DS_Store
+.idea/
+.vscode/
+*.meta.bak
+
+# ===== 微信开发者工具私有配置 =====
 project.private.config.json
+minigame/project.private.config.json

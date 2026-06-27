@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "ES2015",
+    "moduleResolution": "node",
+    "strict": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": { "db://*": ["./assets/scripts/*"] }
+  },
+  "include": ["assets/scripts/**/*.ts", "shared/**/*.ts"]
+}

@@ -1,0 +1,7 @@
+{
+  "appid": "wx5f2be181d74900e1",
+  "projectname": "pawcard",
+  "setting": { "es6": true, "minified": true },
+  "compileType": "minigame",
+  "libVersion": "3.5.5"
+}

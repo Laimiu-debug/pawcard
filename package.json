@@ -1,0 +1,14 @@
+{
+  "name": "pawcard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test --import tsx tests/",
+    "sync:shared": "node scripts/sync-shared.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "tsx": "^4.7.0",
+    "@types/node": "^20.11.0"
+  }
+}

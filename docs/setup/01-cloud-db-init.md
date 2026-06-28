@@ -26,20 +26,24 @@
 
 在 `config` 集合逐条「添加记录」，或用「导入」功能导入下面 JSON：
 
-```json
-[
-  { "key": "recovery_interval_hours", "value": 4 },
-  { "key": "recovery_speed_vip_hours", "value": 2 },
-  { "key": "free_balls_max", "value": 3 },
-  { "key": "vip_balls_max", "value": 10 },
-  { "key": "rarity_weights", "value": { "feature": 30, "quality": 25, "location": 15, "time": 10, "ai": 20 } },
-  { "key": "rarity_thresholds", "value": { "N": 0, "R": 35, "SR": 55, "SSR": 75, "UR": 90 } },
-  { "key": "artgen_cost_per_card", "value": 0.2 },
-  { "key": "artgen_retry_threshold", "value": 0.5 }
-]
+⚠️ **重要：微信云开发数据库导入要求 JSON Lines 格式**（每行一个独立 JSON 对象，**不能有外层方括号 `[]`，行间不能有逗号**）。
+
+用项目里的 **`docs/setup/config-init.jsonl`** 文件导入（已是正确的 JSON Lines 格式）。内容如下供参考：
+
+```
+{"key":"recovery_interval_hours","value":4}
+{"key":"recovery_speed_vip_hours","value":2}
+{"key":"free_balls_max","value":3}
+{"key":"vip_balls_max","value":10}
+{"key":"rarity_weights","value":{"feature":30,"quality":25,"location":15,"time":10,"ai":20}}
+{"key":"rarity_thresholds","value":{"N":0,"R":35,"SR":55,"SSR":75,"UR":90}}
+{"key":"artgen_cost_per_card","value":0.2}
+{"key":"artgen_retry_threshold","value":0.5}
 ```
 
-> 注意：直接逐条添加时，每条记录的字段是 `key`（字符串）和 `value`（数值或对象）。导入功能需要先建好集合再点「导入」选 JSON 文件。
+**导入操作**：`config` 集合 → 点「导入」→ 文件格式选 **JSON Lines** → 冲突处理选「错误」→ 选 `config-init.jsonl` → 确认。
+
+> 如果导入还失败，备选方案：放弃导入，直接在 `config` 集合点「添加记录」，逐条手填上面的 8 条（字段名 `key` + `value`）。
 
 ## 4. 验收
 

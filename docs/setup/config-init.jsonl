@@ -1,0 +1,8 @@
+{"key":"recovery_interval_hours","value":4}
+{"key":"recovery_speed_vip_hours","value":2}
+{"key":"free_balls_max","value":3}
+{"key":"vip_balls_max","value":10}
+{"key":"rarity_weights","value":{"feature":30,"quality":25,"location":15,"time":10,"ai":20}}
+{"key":"rarity_thresholds","value":{"N":0,"R":35,"SR":55,"SSR":75,"UR":90}}
+{"key":"artgen_cost_per_card","value":0.2}
+{"key":"artgen_retry_threshold","value":0.5}

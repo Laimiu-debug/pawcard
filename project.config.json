@@ -1,7 +1,37 @@
 {
   "appid": "wx5f2be181d74900e1",
   "projectname": "pawcard",
-  "setting": { "es6": true, "minified": true },
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "postcss": false,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "enhance": false,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
   "compileType": "minigame",
-  "libVersion": "3.5.5"
+  "libVersion": "3.5.5",
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "isGameTourist": false,
+  "editorSetting": {}
 }

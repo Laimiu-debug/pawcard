@@ -25,6 +25,7 @@
       "outputPath": ""
     }
   },
+  "cloudfunctionRoot": "cloudfunctions/",
   "compileType": "minigame",
   "libVersion": "3.5.5",
   "simulatorPluginLibVersion": {},
